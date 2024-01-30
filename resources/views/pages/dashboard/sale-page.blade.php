@@ -142,34 +142,46 @@
 
 
         function ShowInvoiceItem() {
+        let invoiceList = $('#invoiceList');
 
-            let invoiceList=$('#invoiceList');
+        invoiceList.empty();
 
-            invoiceList.empty();
+        InvoiceItemList.forEach(function (item, index) {
+            let existingRow = invoiceList.find(`tr[data-product="${item['product_name']}"]`);
 
-            InvoiceItemList.forEach(function (item,index) {
-                let row=`<tr class="text-xs">
-                        <td>${item['product_name']}</td>
-                        <td>${item['qty']}</td>
-                        <td>${item['sale_price']}</td>
-                        <td><a data-index="${index}" class="btn remove text-xxs px-2 py-1  btn-sm m-0">Remove</a></td>
-                     </tr>`
-                invoiceList.append(row)
-            })
+            if (existingRow.length) {
+                let existingQty = parseInt(existingRow.find('.qty').text()) || 0;
+                let newQty = existingQty + parseInt(item['qty']);
+                existingRow.find('.qty').text(newQty);
+
+                let existingPrice = parseInt(existingRow.find('.sale_price').text()) || 0;
+                let newPrice = existingPrice + parseInt(item['sale_price']);
+                existingRow.find('.sale_price').text(newPrice)
+            } else {
+
+                let row = `<tr class="text-xs" data-product="${item['product_name']}">
+                                <td>${item['product_name']}</td>
+                                <td class="qty">${item['qty']}</td>
+                                <td class="sale_price">${item['sale_price']}</td>
+                                <td><a data-index="${index}" class="btn remove text-xxs px-2 py-1  btn-sm m-0">Remove</a></td>
+                            </tr>`;
+                invoiceList.append(row);
+            }
+        });
 
             CalculateGrandTotal();
-
-            $('.remove').on('click', async function () {
-                let index= $(this).data('index');
-                removeItem(index);
-            })
-
+            $('.remove').on('click', function () {
+                let product_name = $(this).closest('tr').data('product');
+                removeItem(product_name);
+            });
         }
 
 
-        function removeItem(index) {
-            InvoiceItemList.splice(index,1);
-            ShowInvoiceItem()
+
+        function removeItem(product_name) {
+
+            InvoiceItemList = InvoiceItemList.filter(item => item['product_name'] !== product_name);
+            ShowInvoiceItem();
         }
 
         function DiscountChange() {
